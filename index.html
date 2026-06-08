@@ -1149,9 +1149,19 @@ async function hashPin(pin) {
 function switchAuthTab(tab) {
   document.getElementById('auth-tab-enter').classList.toggle('on', tab==='enter');
   document.getElementById('auth-tab-create').classList.toggle('on', tab==='create');
-  document.getElementById('auth-enter-form').style.display = tab==='enter' ? '' : 'none';
-  document.getElementById('auth-create-form').style.display = tab==='create' ? '' : 'none';
+  var enterForm = document.getElementById('auth-enter-form');
+  var createForm = document.getElementById('auth-create-form');
+  enterForm.style.display = 'none';
+  createForm.style.display = 'none';
+  if (tab === 'enter') {
+    enterForm.style.display = 'block';
+  } else {
+    createForm.style.display = 'block';
+    // Focus first field
+    setTimeout(function(){ document.getElementById('auth-code-create').focus(); }, 50);
+  }
   document.getElementById('auth-error').textContent = '';
+  document.getElementById('auth-loading').textContent = '';
 }
 
 function setAuthError(msg) {
