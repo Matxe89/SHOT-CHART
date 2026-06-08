@@ -179,7 +179,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .auth-logo{font-size:36px;text-align:center;margin-bottom:12px;}
 .auth-title{font-size:18px;font-weight:700;text-align:center;margin-bottom:4px;}
 .auth-sub{font-size:12px;color:var(--muted);text-align:center;margin-bottom:22px;line-height:1.5;}
-.auth-tabs{display:flex;background:#f0f0ee;border-radius:9px;padding:3px;margin-bottom:20px;}
+.auth-tabs{display:flex;background:#f0f0ee;border-radius:9px;padding:3px;margin-bottom:20px;position:relative;z-index:10;}
 .auth-tab{flex:1;padding:7px;font-size:12px;font-weight:700;border:none;background:none;border-radius:7px;cursor:pointer;color:var(--muted);font-family:'DM Sans',sans-serif;transition:all .15s;}
 .auth-tab.on{background:var(--card);color:var(--accent);box-shadow:0 1px 4px rgba(0,0,0,.08);}
 .auth-field{margin-bottom:12px;}
@@ -222,13 +222,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div class="auth-title">Shot Chart</div>
     <div class="auth-sub">Enter your team code and PIN to access your data, or create a new team.</div>
     <div class="auth-tabs">
-      <button class="auth-tab on" id="auth-tab-enter" onclick="switchAuthTab('enter')">Sign In</button>
-      <button class="auth-tab" id="auth-tab-create" onclick="switchAuthTab('create')">Create Team</button>
+      <button class="auth-tab on" id="auth-tab-enter" onclick="switchAuthTab('enter')" ontouchend="switchAuthTab('enter')">Sign In</button>
+      <button class="auth-tab" id="auth-tab-create" onclick="switchAuthTab('create')" ontouchend="switchAuthTab('create')">Create Team</button>
     </div>
     <div id="auth-enter-form">
       <div class="auth-field">
         <label>Select Team</label>
-        <select id="auth-team-select" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;background:#fff;color:var(--text);appearance:none;">
+        <select id="auth-team-select" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;background:#fff;color:var(--text);appearance:none;position:relative;z-index:1;">
           <option value="">Loading teams...</option>
         </select>
       </div>
@@ -1402,4 +1402,3 @@ document.getElementById('delete-team-pin').addEventListener('keydown', function(
 </script>
 </body>
 </html>
-
