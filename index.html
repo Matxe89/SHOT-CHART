@@ -227,14 +227,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     </div>
     <div id="auth-enter-form">
       <div class="auth-field">
-        <label>Select Team</label>
-        <div style="position:relative;">
-          <select id="auth-team-select" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;background:#fff;color:var(--text);">
-            <option value="">Loading teams...</option>
-          </select>
-        </div>
+        <label>Team Code</label>
+        <input id="auth-team-select" placeholder="e.g. SBA_U20" autocomplete="off" spellcheck="false" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;background:#fff;color:var(--text);" onkeydown="if(event.key==='Enter')document.getElementById('auth-pin-enter').focus()">
+        <div id="teams-dropdown" style="display:none;border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;background:#fff;max-height:160px;overflow-y:auto;"></div>
       </div>
-      <div class="auth-field"><label>PIN</label><input id="auth-pin-enter" type="password" placeholder="Your team PIN" autocomplete="off"></div>
+      <div class="auth-field"><label>PIN</label><input id="auth-pin-enter" type="password" placeholder="Your team PIN" autocomplete="off" onkeydown="if(event.key==='Enter')authSignIn()"></div>
       <button class="auth-btn" onclick="authSignIn()">Sign In →</button>
     </div>
     <div id="auth-create-form" style="display:none">
@@ -1193,7 +1190,7 @@ async function initFirebase() {
 }
 
 async function authSignIn() {
-  var code = document.getElementById('auth-team-select').value;
+  var code = document.getElementById('auth-team-select').value.trim().toUpperCase().replace(/\s+/g,'_');
   var pin  = document.getElementById('auth-pin-enter').value.trim();
   if (!code) { setAuthError('Please select a team.'); return; }
   if (!pin) { setAuthError('Please enter your PIN.'); return; }
