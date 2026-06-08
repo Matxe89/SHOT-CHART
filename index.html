@@ -216,7 +216,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 </head>
 <body>
 <!-- TEAM AUTH SCREEN -->
-<div class="auth-screen" id="auth-screen">
+<div class="auth-screen" id="auth-screen" style="display:flex">
   <div class="auth-box">
     <div class="auth-logo">🏀</div>
     <div class="auth-title">Shot Chart</div>
@@ -1286,13 +1286,27 @@ async function loadData() {
 }
 
 async function loadTeamsList() {
+  const sel = document.getElementById('auth-team-select');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">Loading teams...</option>';
+  // Timeout after 6 seconds
+  var timedOut = false;
+  var timeout = setTimeout(function() {
+    timedOut = true;
+    sel.innerHTML = '<option value="">Could not load — type code manually</option>';
+    sel.outerHTML = '<input id="auth-team-select" placeholder="Team code (e.g. SBA_U20)" autocomplete="off" spellcheck="false" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;background:#fff;color:var(--text);">';
+  }, 6000);
   try {
     await initFirebase();
+    if (timedOut) return;
     const { collection, getDocs } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
     const snap = await getDocs(collection(db, 'shot_chart_teams'));
-    const sel = document.getElementById('auth-team-select');
+    clearTimeout(timeout);
+    if (timedOut) return;
+    const selEl = document.getElementById('auth-team-select');
+    if (!selEl) return;
     if (snap.empty) {
-      sel.innerHTML = '<option value="">No teams yet — create one!</option>';
+      selEl.innerHTML = '<option value="">No teams yet — create one!</option>';
       return;
     }
     var opts = '<option value="">— Select your team —</option>';
@@ -1300,28 +1314,33 @@ async function loadTeamsList() {
       var data = d.data();
       opts += '<option value="' + d.id + '">' + (data.name || d.id) + ' (' + d.id + ')</option>';
     });
-    sel.innerHTML = opts;
+    selEl.innerHTML = opts;
   } catch(e) {
-    document.getElementById('auth-team-select').innerHTML = '<option value="">Enter team code manually</option>';
-    // Fallback: show text input
-    document.getElementById('auth-team-select').outerHTML = '<input id="auth-team-select" placeholder="Team code (e.g. SBA_U20)" autocomplete="off" spellcheck="false" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:DM Sans,sans-serif;background:#fff;color:var(--text);">';
+    clearTimeout(timeout);
+    if (timedOut) return;
+    const selEl = document.getElementById('auth-team-select');
+    if (selEl) selEl.outerHTML = '<input id="auth-team-select" placeholder="Team code (e.g. SBA_U20)" autocomplete="off" spellcheck="false" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;background:#fff;color:var(--text);">';
   }
 }
 
 // ── INIT ──
+// Auth screen is visible by default — start loading teams in background
 (async function() {
-  // Check session
+  // Check session first
   var saved = sessionStorage.getItem('sc_team');
   if (saved) {
     try {
       currentTeam = JSON.parse(saved);
+      setAuthLoading('Reconnecting...');
       await initFirebase();
       await launchApp();
       return;
-    } catch(e) { sessionStorage.removeItem('sc_team'); }
+    } catch(e) {
+      sessionStorage.removeItem('sc_team');
+      setAuthLoading('');
+    }
   }
-  // Show auth screen and load teams list
-  document.getElementById('auth-screen').style.display = 'flex';
+  // Load teams list in background — UI is already visible and usable
   loadTeamsList();
 })();
 
