@@ -1148,19 +1148,16 @@ async function hashPin(pin) {
 function switchAuthTab(tab) {
   document.getElementById('auth-tab-enter').classList.toggle('on', tab==='enter');
   document.getElementById('auth-tab-create').classList.toggle('on', tab==='create');
-  var enterForm = document.getElementById('auth-enter-form');
-  var createForm = document.getElementById('auth-create-form');
-  enterForm.style.display = 'none';
-  createForm.style.display = 'none';
-  if (tab === 'enter') {
-    enterForm.style.display = 'block';
-  } else {
-    createForm.style.display = 'block';
-    // Focus first field
-    setTimeout(function(){ document.getElementById('auth-code-create').focus(); }, 50);
-  }
+  document.getElementById('auth-enter-form').style.cssText = tab==='enter' ? 'display:block' : 'display:none';
+  document.getElementById('auth-create-form').style.cssText = tab==='create' ? 'display:block' : 'display:none';
   document.getElementById('auth-error').textContent = '';
   document.getElementById('auth-loading').textContent = '';
+  if (tab === 'create') {
+    setTimeout(function(){ 
+      var f = document.getElementById('auth-code-create');
+      if(f) f.focus(); 
+    }, 50);
+  }
 }
 
 function setAuthError(msg) {
@@ -1339,25 +1336,28 @@ async function loadTeamsList() {
 }
 
 // ── INIT ──
-// Auth screen is visible by default — start loading teams in background
-(async function() {
-  // Check session first
-  var saved = sessionStorage.getItem('sc_team');
-  if (saved) {
-    try {
-      currentTeam = JSON.parse(saved);
-      setAuthLoading('Reconnecting...');
-      await initFirebase();
-      await launchApp();
-      return;
-    } catch(e) {
+// Show auth screen immediately — no blocking calls
+var saved = sessionStorage.getItem('sc_team');
+if (saved) {
+  try {
+    currentTeam = JSON.parse(saved);
+    // Try to reconnect, but don't block UI
+    setAuthLoading('Reconnecting...');
+    initFirebase().then(function() {
+      return launchApp();
+    }).catch(function() {
       sessionStorage.removeItem('sc_team');
+      currentTeam = null;
       setAuthLoading('');
-    }
+    });
+  } catch(e) {
+    sessionStorage.removeItem('sc_team');
+    setAuthLoading('');
   }
-  // Load teams list in background — UI is already visible and usable
-  loadTeamsList();
-})();
+} else {
+  // Load teams in background — screen is already usable
+  setTimeout(function() { loadTeamsList(); }, 100);
+}
 
 // ── DELETE TEAM ──
 function confirmDeleteTeam() {
