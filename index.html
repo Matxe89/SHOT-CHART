@@ -28,7 +28,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .app{max-width:600px;margin:0 auto;background:var(--card);min-height:100vh;display:flex;flex-direction:column;}
 
 /* TOPBAR */
-.topbar{padding:.875rem 1.25rem .75rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--card);z-index:10;}
+.topbar{padding:.875rem 1.25rem .75rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--card);z-index:10;isolation:isolate;}
 .brand{display:flex;align-items:center;gap:.625rem;}
 .brand-icon{width:30px;height:30px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;}
 .brand-name{font-size:15px;font-weight:700;letter-spacing:-.02em;}
@@ -174,14 +174,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .hidden{display:none!important;}
 
 /* ── TEAM AUTH SCREEN ── */
-.auth-screen{position:fixed;inset:0;background:var(--bg);z-index:900;display:flex;align-items:center;justify-content:center;padding:20px;}
-.auth-box{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px 24px;max-width:360px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.10);}
+.auth-screen{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;}
+.auth-box{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px 24px;max-width:360px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.10);position:relative;z-index:1;}
 .auth-logo{font-size:36px;text-align:center;margin-bottom:12px;}
 .auth-title{font-size:18px;font-weight:700;text-align:center;margin-bottom:4px;}
 .auth-sub{font-size:12px;color:var(--muted);text-align:center;margin-bottom:22px;line-height:1.5;}
-.auth-tabs{display:flex;background:#f0f0ee;border-radius:9px;padding:3px;margin-bottom:20px;position:relative;z-index:10;}
-.auth-tab{flex:1;padding:7px;font-size:12px;font-weight:700;border:none;background:none;border-radius:7px;cursor:pointer;color:var(--muted);font-family:'DM Sans',sans-serif;transition:all .15s;}
-.auth-tab.on{background:var(--card);color:var(--accent);box-shadow:0 1px 4px rgba(0,0,0,.08);}
 .auth-field{margin-bottom:12px;}
 .auth-field label{display:block;font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;}
 .auth-field input{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;background:#fff;color:var(--text);}
@@ -220,13 +217,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   <div class="auth-box">
     <div class="auth-logo">🏀</div>
     <div class="auth-title">Shot Chart</div>
-    <div class="auth-sub" id="auth-sub">Enter your team code and PIN to sign in, or create a new team.</div>
-
-    <!-- MODE TOGGLE -->
-    <div class="auth-tabs">
-      <button class="auth-tab on" id="auth-tab-enter" onclick="switchAuthTab('enter')">Sign In</button>
-      <button class="auth-tab" id="auth-tab-create" onclick="switchAuthTab('create')">Create Team</button>
-    </div>
+    <div class="auth-sub" id="auth-sub">Enter your team code and PIN to access your data.</div>
 
     <!-- SIGN IN FORM -->
     <div id="auth-enter-form">
@@ -241,31 +232,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
           onkeydown="if(event.key==='Enter')authSignIn()">
       </div>
       <button class="auth-btn" onclick="authSignIn()">Sign In →</button>
+      <p style="text-align:center;margin-top:12px;"><a href="#" style="font-size:12px;color:var(--muted);text-decoration:none;" onclick="event.preventDefault();toggleCreateForm()">+ Create new team</a></p>
     </div>
 
-    <!-- CREATE TEAM FORM -->
-    <div id="auth-create-form" style="display:none">
-      <div class="auth-field">
-        <label>Team Code <span style="font-weight:400;text-transform:none;font-size:10px">(letters, numbers, _)</span></label>
-        <input id="auth-code-create" placeholder="e.g. SBA_U20" autocomplete="off" spellcheck="false"
-          onkeydown="if(event.key==='Enter')document.getElementById('auth-name-create').focus()">
-      </div>
-      <div class="auth-field">
-        <label>Team Name</label>
-        <input id="auth-name-create" placeholder="e.g. Barcelona U20" autocomplete="off"
-          onkeydown="if(event.key==='Enter')document.getElementById('auth-pin-create').focus()">
-      </div>
-      <div class="auth-field">
-        <label>PIN</label>
-        <input id="auth-pin-create" type="password" placeholder="Choose a PIN (min 4 chars)"
-          onkeydown="if(event.key==='Enter')document.getElementById('auth-pin-create2').focus()">
-      </div>
-      <div class="auth-field">
-        <label>Confirm PIN</label>
-        <input id="auth-pin-create2" type="password" placeholder="Repeat PIN"
-          onkeydown="if(event.key==='Enter')authCreateTeam()">
-      </div>
+    <div id="auth-create-form" style="display:none;border-top:1px solid var(--border);margin-top:14px;padding-top:14px;">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;">New Team</div>
+      <div class="auth-field"><label>Team Code</label><input id="auth-code-create" placeholder="e.g. SBA_U20" autocomplete="off" spellcheck="false" onkeydown="if(event.key==='Enter')document.getElementById('auth-name-create').focus()"></div>
+      <div class="auth-field"><label>Team Name</label><input id="auth-name-create" placeholder="e.g. Barcelona U20" autocomplete="off" onkeydown="if(event.key==='Enter')document.getElementById('auth-pin-create').focus()"></div>
+      <div class="auth-field"><label>PIN</label><input id="auth-pin-create" type="password" placeholder="Min 4 characters" onkeydown="if(event.key==='Enter')document.getElementById('auth-pin-create2').focus()"></div>
+      <div class="auth-field"><label>Confirm PIN</label><input id="auth-pin-create2" type="password" placeholder="Repeat PIN" onkeydown="if(event.key==='Enter')authCreateTeam()"></div>
       <button class="auth-btn" onclick="authCreateTeam()">Create Team →</button>
+      <p style="text-align:center;margin-top:10px;"><a href="#" style="font-size:12px;color:var(--muted);text-decoration:none;" onclick="event.preventDefault();toggleCreateForm()">Cancel</a></p>
     </div>
 
     <div class="auth-error" id="auth-error"></div>
@@ -485,6 +462,18 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   </div>
 </div>
 </div><!-- /app -->
+
+<script>
+function toggleCreateForm() {
+  var f = document.getElementById('auth-create-form');
+  var isVisible = f.style.display !== 'none';
+  f.style.display = isVisible ? 'none' : 'block';
+  if (!isVisible) {
+    document.getElementById('auth-error').textContent = '';
+    setTimeout(function(){ document.getElementById('auth-code-create').focus(); }, 50);
+  }
+}
+</script>
 
 <script>
 // ── DATOS BASE ──
@@ -1187,6 +1176,7 @@ async function hashPin(pin) {
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
+
 function switchAuthTab(tab) {
   document.getElementById('auth-tab-enter').classList.toggle('on', tab==='enter');
   document.getElementById('auth-tab-create').classList.toggle('on', tab==='create');
@@ -1334,46 +1324,40 @@ async function loadData() {
 }
 
 async function loadTeamsList() {
-  const sel = document.getElementById('auth-team-select');
-  if (!sel) return;
-  sel.innerHTML = '<option value="">Loading teams...</option>';
-  sel.style.pointerEvents = 'none';
-  sel.style.opacity = '0.6';
-  // Timeout after 6 seconds
-  var timedOut = false;
-  var timeout = setTimeout(function() {
-    timedOut = true;
-    sel.innerHTML = '<option value="">Could not load — type code manually</option>';
-    sel.outerHTML = '<input id="auth-team-select" placeholder="Team code (e.g. SBA_U20)" autocomplete="off" spellcheck="false" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;background:#fff;color:var(--text);">';
-  }, 6000);
   try {
     await initFirebase();
-    if (timedOut) return;
     const { collection, getDocs } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
     const snap = await getDocs(collection(db, 'shot_chart_teams'));
-    clearTimeout(timeout);
-    if (timedOut) return;
-    const selEl = document.getElementById('auth-team-select');
-    if (!selEl) return;
-    if (snap.empty) {
-      selEl.innerHTML = '<option value="">No teams yet — create one!</option>';
-      selEl.style.pointerEvents = '';
-      selEl.style.opacity = '';
-      return;
-    }
-    var opts = '<option value="">— Select your team —</option>';
+    if (snap.empty) return;
+    var teams = [];
     snap.forEach(function(d) {
       var data = d.data();
-      opts += '<option value="' + d.id + '">' + (data.name || d.id) + ' (' + d.id + ')</option>';
+      teams.push({ code: d.id, name: data.name || d.id });
     });
-    selEl.innerHTML = opts;
-    selEl.style.pointerEvents = '';
-    selEl.style.opacity = '';
+    var inp = document.getElementById('auth-code-enter');
+    var dropdown = document.getElementById('teams-dropdown');
+    if (!inp || !dropdown) return;
+    // Pre-fill if only one team
+    if (teams.length === 1) inp.value = teams[0].code;
+    // Build dropdown items
+    function buildDropdown(list) {
+      dropdown.innerHTML = list.map(function(t) {
+        return '<div style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid #f0f0ee;" ' +
+          'onmousedown="event.preventDefault();document.getElementById('auth-code-enter').value='' + t.code + '';document.getElementById('teams-dropdown').style.display='none';document.getElementById('auth-pin-enter').focus();">' +
+          '<strong>' + t.name + '</strong> <span style="color:#999;font-size:11px">' + t.code + '</span></div>';
+      }).join('');
+    }
+    buildDropdown(teams);
+    inp.addEventListener('focus', function() { buildDropdown(teams); dropdown.style.display = 'block'; });
+    inp.addEventListener('blur', function() { setTimeout(function(){ dropdown.style.display = 'none'; }, 200); });
+    inp.addEventListener('input', function() {
+      var v = inp.value.toUpperCase();
+      var filtered = teams.filter(function(t){ return t.code.includes(v) || t.name.toUpperCase().includes(v); });
+      buildDropdown(filtered);
+      dropdown.style.display = filtered.length ? 'block' : 'none';
+    });
   } catch(e) {
-    clearTimeout(timeout);
-    if (timedOut) return;
-    const selEl = document.getElementById('auth-team-select');
-    if (selEl) selEl.outerHTML = '<input id="auth-team-select" placeholder="Team code (e.g. SBA_U20)" autocomplete="off" spellcheck="false" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;background:#fff;color:var(--text);">';
+    console.log('Could not load teams:', e);
   }
 }
 
