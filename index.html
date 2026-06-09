@@ -1308,41 +1308,7 @@ async function loadData() {
 }
 
 async function loadTeamsList() {
-  try {
-    await initFirebase();
-    const { collection, getDocs } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
-    const snap = await getDocs(collection(db, 'shot_chart_teams'));
-    if (snap.empty) return;
-    var teams = [];
-    snap.forEach(function(d) {
-      var data = d.data();
-      teams.push({ code: d.id, name: data.name || d.id });
-    });
-    var inp = document.getElementById('auth-code-enter');
-    var dropdown = document.getElementById('teams-dropdown');
-    if (!inp || !dropdown) return;
-    // Pre-fill if only one team
-    if (teams.length === 1) inp.value = teams[0].code;
-    // Build dropdown items
-    function buildDropdown(list) {
-      dropdown.innerHTML = list.map(function(t) {
-        return '<div style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid #f0f0ee;" ' +
-          'onmousedown="event.preventDefault();document.getElementById(\'auth-code-enter\').value=\''+t.code+'\';document.getElementById(\'teams-dropdown\').style.display=\'none\';document.getElementById(\'auth-pin-enter\').focus();">' +
-          '<strong>'+t.name+'</strong> <span style="color:#999;font-size:11px">'+t.code+'</span></div>';
-      }).join('');
-    }
-    buildDropdown(teams);
-    inp.addEventListener('focus', function() { buildDropdown(teams); dropdown.style.display = 'block'; });
-    inp.addEventListener('blur', function() { setTimeout(function(){ dropdown.style.display = 'none'; }, 200); });
-    inp.addEventListener('input', function() {
-      var v = inp.value.toUpperCase();
-      var filtered = teams.filter(function(t){ return t.code.includes(v) || t.name.toUpperCase().includes(v); });
-      buildDropdown(filtered);
-      dropdown.style.display = filtered.length ? 'block' : 'none';
-    });
-  } catch(e) {
-    console.log('Could not load teams:', e);
-  }
+  // Teams loaded on demand
 }
 
 // ── INIT ──
