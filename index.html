@@ -1066,23 +1066,7 @@ function exportPDF(){
   });
   html+='</tbody></table>';
   html+='<script>window.onload=function(){window.print();}<\/script>';
-  html+='
-  <div class="modal-box">
-    <div class="modal-title">⚠️ Delete Team</div>
-    <div class="modal-sub">Enter your PIN to confirm. This will permanently delete the team <strong id="delete-team-name"></strong> and all its data.</div>
-    <div class="modal-field">
-      <label>PIN</label>
-      <input type="password" id="delete-team-pin" placeholder="Enter your PIN" autocomplete="off">
-    </div>
-    <div class="modal-error" id="delete-team-error"></div>
-    <div class="modal-btns">
-      <button class="cancel-btn" onclick="closeDeleteModal()">Cancel</button>
-      <button class="delete-btn" onclick="executeDeleteTeam()">Delete forever</button>
-    </div>
-  </div>
-</div>
-
-</body></html>';
+  html+='</body></html>';
 
   var blob=new Blob([html],{type:'text/html;charset=utf-8'});
   var url=URL.createObjectURL(blob);
@@ -1216,7 +1200,7 @@ async function initFirebase() {
   return db;
 }
 
-window.authSignIn = async function authSignIn() {
+async function authSignInFn() {
   var code = (document.getElementById('auth-code-enter').value||'').trim().toUpperCase().replace(/[^A-Z0-9_]/g,'_');
   var pin  = document.getElementById('auth-pin-enter').value.trim();
   if (!code) { setAuthError('Please enter your team code.'); return; }
@@ -1238,7 +1222,7 @@ window.authSignIn = async function authSignIn() {
   } catch(e) { setAuthError('Connection error. Try again.'); console.error(e); }
 }
 
-window.authCreateTeam = async function authCreateTeam() {
+async function authCreateTeamFn() {
   var code  = document.getElementById('auth-code-create').value.trim().toUpperCase().replace(/\s+/g,'_');
   var name  = document.getElementById('auth-name-create').value.trim();
   var pin   = document.getElementById('auth-pin-create').value.trim();
@@ -1262,7 +1246,7 @@ window.authCreateTeam = async function authCreateTeam() {
   } catch(e) { setAuthError('Connection error. Try again.'); console.error(e); }
 }
 
-window.authLogout = function authLogout() {
+function authLogoutFn() {
   sessionStorage.removeItem('sc_team');
   currentTeam = null;
   entries = []; nextId = 1; players = DEFAULT_PLAYERS.slice();
@@ -1275,7 +1259,7 @@ window.authLogout = function authLogout() {
   document.getElementById('auth-pin-enter').value = '';
 }
 
-window.launchApp = async function launchApp() {
+async function launchApp() {
   document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('main-app').style.display = 'flex';
   document.getElementById('team-badge').textContent = currentTeam.name;
@@ -1442,6 +1426,11 @@ document.getElementById('delete-team-modal').addEventListener('click', function(
 document.getElementById('delete-team-pin').addEventListener('keydown', function(e) {
   if (e.key === 'Enter') executeDeleteTeam();
 });
+
+// ── GLOBAL WRAPPERS for onclick access ──
+window.authSignIn = function() { return authSignInFn(); };
+window.authCreateTeam = function() { return authCreateTeamFn(); };
+window.authLogout = function() { return authLogoutFn(); };
 
 </script>
 </body>
