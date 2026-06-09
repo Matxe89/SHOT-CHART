@@ -209,6 +209,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .modal-btns .delete-btn:hover{background:#f5a0a0;}
 .modal-error{font-size:11px;color:var(--red);min-height:16px;margin-top:6px;}
 
+
+.team-suggestion{padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid #f0f0ee;}
+.team-suggestion:last-child{border-bottom:none;}
+.team-suggestion:hover{background:#f5f5f3;}
+
 </style>
 </head>
 <body>
@@ -1308,7 +1313,57 @@ async function loadData() {
 }
 
 async function loadTeamsList() {
-  // Teams loaded on demand
+  try {
+    await initFirebase();
+    const { collection, getDocs } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    const snap = await getDocs(collection(db, 'shot_chart_teams'));
+    if (snap.empty) return;
+    var teams = [];
+    snap.forEach(function(d) {
+      var data = d.data();
+      teams.push({ code: d.id, name: data.name || d.id });
+    });
+    var inp = document.getElementById('auth-code-enter');
+    var dropdown = document.getElementById('teams-dropdown');
+    if (!inp || !dropdown) return;
+
+    if (teams.length === 1) inp.value = teams[0].code;
+
+    function renderDropdown(list) {
+      if (!list.length) { dropdown.style.display = 'none'; return; }
+      var rows = '';
+      for (var i = 0; i < list.length; i++) {
+        var code = list[i].code;
+        var name = list[i].name;
+        rows += '<div class="team-suggestion" data-code="' + code + '">' +
+                '<strong>' + name + '</strong>' +
+                '<span style="color:#999;font-size:11px;margin-left:6px">' + code + '</span>' +
+                '</div>';
+      }
+      dropdown.innerHTML = rows;
+      dropdown.style.display = 'block';
+      dropdown.querySelectorAll('.team-suggestion').forEach(function(el) {
+        el.addEventListener('mousedown', function(e) {
+          e.preventDefault();
+          inp.value = el.dataset.code;
+          dropdown.style.display = 'none';
+          document.getElementById('auth-pin-enter').focus();
+        });
+      });
+    }
+
+    inp.addEventListener('focus', function() { renderDropdown(teams); });
+    inp.addEventListener('blur', function() { setTimeout(function(){ dropdown.style.display = 'none'; }, 200); });
+    inp.addEventListener('input', function() {
+      var v = inp.value.toUpperCase();
+      var filtered = teams.filter(function(t) {
+        return t.code.indexOf(v) >= 0 || t.name.toUpperCase().indexOf(v) >= 0;
+      });
+      renderDropdown(filtered);
+    });
+  } catch(e) {
+    console.log('Could not load teams:', e);
+  }
 }
 
 // ── INIT ──
