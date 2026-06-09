@@ -226,10 +226,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
     <!-- SIGN IN FORM -->
     <div id="auth-enter-form">
-      <div class="auth-field">
+      <div class="auth-field" style="position:relative;">
         <label>Team Code</label>
         <input id="auth-code-enter" placeholder="e.g. SBA_U20" autocomplete="off" spellcheck="false"
           onkeydown="if(event.key==='Enter')document.getElementById('auth-pin-enter').focus()">
+        <div id="teams-dropdown" style="display:none;position:absolute;left:0;right:0;border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;background:#fff;z-index:100;max-height:160px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,.1);"></div>
       </div>
       <div class="auth-field">
         <label>PIN</label>
