@@ -1216,7 +1216,7 @@ async function initFirebase() {
   return db;
 }
 
-async function authSignIn() {
+window.authSignIn = async function authSignIn() {
   var code = (document.getElementById('auth-code-enter').value||'').trim().toUpperCase().replace(/[^A-Z0-9_]/g,'_');
   var pin  = document.getElementById('auth-pin-enter').value.trim();
   if (!code) { setAuthError('Please enter your team code.'); return; }
@@ -1238,7 +1238,7 @@ async function authSignIn() {
   } catch(e) { setAuthError('Connection error. Try again.'); console.error(e); }
 }
 
-async function authCreateTeam() {
+window.authCreateTeam = async function authCreateTeam() {
   var code  = document.getElementById('auth-code-create').value.trim().toUpperCase().replace(/\s+/g,'_');
   var name  = document.getElementById('auth-name-create').value.trim();
   var pin   = document.getElementById('auth-pin-create').value.trim();
@@ -1262,7 +1262,7 @@ async function authCreateTeam() {
   } catch(e) { setAuthError('Connection error. Try again.'); console.error(e); }
 }
 
-function authLogout() {
+window.authLogout = function authLogout() {
   sessionStorage.removeItem('sc_team');
   currentTeam = null;
   entries = []; nextId = 1; players = DEFAULT_PLAYERS.slice();
@@ -1275,7 +1275,7 @@ function authLogout() {
   document.getElementById('auth-pin-enter').value = '';
 }
 
-async function launchApp() {
+window.launchApp = async function launchApp() {
   document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('main-app').style.display = 'flex';
   document.getElementById('team-badge').textContent = currentTeam.name;
