@@ -220,27 +220,54 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   <div class="auth-box">
     <div class="auth-logo">🏀</div>
     <div class="auth-title">Shot Chart</div>
-    <div class="auth-sub">Enter your team code and PIN to access your data, or create a new team.</div>
-    <div class="auth-tabs" style="position:relative;z-index:20;">
-      <button class="auth-tab on" id="auth-tab-enter" onclick="switchAuthTab('enter')" ontouchend="event.preventDefault();switchAuthTab('enter')">Sign In</button>
-      <button class="auth-tab" id="auth-tab-create" onclick="switchAuthTab('create')" ontouchend="event.preventDefault();switchAuthTab('create')">Create Team</button>
+    <div class="auth-sub" id="auth-sub">Enter your team code and PIN to sign in, or create a new team.</div>
+
+    <!-- MODE TOGGLE -->
+    <div class="auth-tabs">
+      <button class="auth-tab on" id="auth-tab-enter" onclick="switchAuthTab('enter')">Sign In</button>
+      <button class="auth-tab" id="auth-tab-create" onclick="switchAuthTab('create')">Create Team</button>
     </div>
+
+    <!-- SIGN IN FORM -->
     <div id="auth-enter-form">
       <div class="auth-field">
         <label>Team Code</label>
-        <input id="auth-team-select" placeholder="e.g. SBA_U20" autocomplete="off" spellcheck="false" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;background:#fff;color:var(--text);" onkeydown="if(event.key==='Enter')document.getElementById('auth-pin-enter').focus()">
-        <div id="teams-dropdown" style="display:none;border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;background:#fff;max-height:160px;overflow-y:auto;"></div>
+        <input id="auth-code-enter" placeholder="e.g. SBA_U20" autocomplete="off" spellcheck="false"
+          onkeydown="if(event.key==='Enter')document.getElementById('auth-pin-enter').focus()">
       </div>
-      <div class="auth-field"><label>PIN</label><input id="auth-pin-enter" type="password" placeholder="Your team PIN" autocomplete="off" onkeydown="if(event.key==='Enter')authSignIn()"></div>
+      <div class="auth-field">
+        <label>PIN</label>
+        <input id="auth-pin-enter" type="password" placeholder="Your PIN"
+          onkeydown="if(event.key==='Enter')authSignIn()">
+      </div>
       <button class="auth-btn" onclick="authSignIn()">Sign In →</button>
     </div>
+
+    <!-- CREATE TEAM FORM -->
     <div id="auth-create-form" style="display:none">
-      <div class="auth-field"><label>Team Code</label><input id="auth-code-create" placeholder="e.g. MY_TEAM_2026" autocomplete="off" spellcheck="false"></div>
-      <div class="auth-field"><label>Team Name</label><input id="auth-name-create" placeholder="e.g. Barcelona U20" autocomplete="off"></div>
-      <div class="auth-field"><label>PIN (4+ digits)</label><input id="auth-pin-create" type="password" placeholder="Choose a PIN" autocomplete="off"></div>
-      <div class="auth-field"><label>Confirm PIN</label><input id="auth-pin-create2" type="password" placeholder="Repeat PIN" autocomplete="off"></div>
+      <div class="auth-field">
+        <label>Team Code <span style="font-weight:400;text-transform:none;font-size:10px">(letters, numbers, _)</span></label>
+        <input id="auth-code-create" placeholder="e.g. SBA_U20" autocomplete="off" spellcheck="false"
+          onkeydown="if(event.key==='Enter')document.getElementById('auth-name-create').focus()">
+      </div>
+      <div class="auth-field">
+        <label>Team Name</label>
+        <input id="auth-name-create" placeholder="e.g. Barcelona U20" autocomplete="off"
+          onkeydown="if(event.key==='Enter')document.getElementById('auth-pin-create').focus()">
+      </div>
+      <div class="auth-field">
+        <label>PIN</label>
+        <input id="auth-pin-create" type="password" placeholder="Choose a PIN (min 4 chars)"
+          onkeydown="if(event.key==='Enter')document.getElementById('auth-pin-create2').focus()">
+      </div>
+      <div class="auth-field">
+        <label>Confirm PIN</label>
+        <input id="auth-pin-create2" type="password" placeholder="Repeat PIN"
+          onkeydown="if(event.key==='Enter')authCreateTeam()">
+      </div>
       <button class="auth-btn" onclick="authCreateTeam()">Create Team →</button>
     </div>
+
     <div class="auth-error" id="auth-error"></div>
     <div class="auth-loading" id="auth-loading"></div>
   </div>
@@ -1148,16 +1175,14 @@ async function hashPin(pin) {
 function switchAuthTab(tab) {
   document.getElementById('auth-tab-enter').classList.toggle('on', tab==='enter');
   document.getElementById('auth-tab-create').classList.toggle('on', tab==='create');
-  document.getElementById('auth-enter-form').style.cssText = tab==='enter' ? 'display:block' : 'display:none';
-  document.getElementById('auth-create-form').style.cssText = tab==='create' ? 'display:block' : 'display:none';
+  document.getElementById('auth-enter-form').style.display = tab==='enter' ? 'block' : 'none';
+  document.getElementById('auth-create-form').style.display = tab==='create' ? 'block' : 'none';
   document.getElementById('auth-error').textContent = '';
   document.getElementById('auth-loading').textContent = '';
-  if (tab === 'create') {
-    setTimeout(function(){ 
-      var f = document.getElementById('auth-code-create');
-      if(f) f.focus(); 
-    }, 50);
-  }
+  setTimeout(function(){
+    var f = document.getElementById(tab==='enter' ? 'auth-code-enter' : 'auth-code-create');
+    if(f) f.focus();
+  }, 50);
 }
 
 function setAuthError(msg) {
@@ -1187,10 +1212,10 @@ async function initFirebase() {
 }
 
 async function authSignIn() {
-  var code = document.getElementById('auth-team-select').value.trim().toUpperCase().replace(/\s+/g,'_');
+  var code = (document.getElementById('auth-code-enter').value||'').trim().toUpperCase().replace(/[^A-Z0-9_]/g,'_');
   var pin  = document.getElementById('auth-pin-enter').value.trim();
-  if (!code) { setAuthError('Please select a team.'); return; }
-  if (!pin) { setAuthError('Please enter your PIN.'); return; }
+  if (!code) { setAuthError('Please enter your team code.'); return; }
+  if (!pin)  { setAuthError('Please enter your PIN.'); return; }
   setAuthLoading('Checking...');
   try {
     await initFirebase();
@@ -1203,6 +1228,7 @@ async function authSignIn() {
     if (data.pinHash !== pinHash) { setAuthError('Incorrect PIN.'); return; }
     currentTeam = { code: code, name: data.name };
     sessionStorage.setItem('sc_team', JSON.stringify(currentTeam));
+    localStorage.setItem('sc_last_code', code);
     launchApp();
   } catch(e) { setAuthError('Connection error. Try again.'); console.error(e); }
 }
@@ -1227,7 +1253,6 @@ async function authCreateTeam() {
     await setDoc(ref, { name: name, pinHash: pinHash, createdAt: new Date().toISOString() });
     currentTeam = { code: code, name: name };
     sessionStorage.setItem('sc_team', JSON.stringify(currentTeam));
-    await loadTeamsList(); // refresh dropdown for future sign-ins
     launchApp();
   } catch(e) { setAuthError('Connection error. Try again.'); console.error(e); }
 }
@@ -1240,6 +1265,8 @@ function authLogout() {
   document.getElementById('main-app').style.display = 'none';
   document.getElementById('auth-error').textContent = '';
   document.getElementById('auth-loading').textContent = '';
+  var codeEl = document.getElementById('auth-code-enter');
+  if (codeEl) codeEl.value = localStorage.getItem('sc_last_code') || '';
   document.getElementById('auth-pin-enter').value = '';
 }
 
@@ -1336,12 +1363,17 @@ async function loadTeamsList() {
 }
 
 // ── INIT ──
-// Show auth screen immediately — no blocking calls
+// Restore last used team code
+var lastCode = localStorage.getItem('sc_last_code');
+if (lastCode) {
+  var codeEl = document.getElementById('auth-code-enter');
+  if (codeEl) codeEl.value = lastCode;
+}
+// Check session
 var saved = sessionStorage.getItem('sc_team');
 if (saved) {
   try {
     currentTeam = JSON.parse(saved);
-    // Try to reconnect, but don't block UI
     setAuthLoading('Reconnecting...');
     initFirebase().then(function() {
       return launchApp();
@@ -1354,10 +1386,8 @@ if (saved) {
     sessionStorage.removeItem('sc_team');
     setAuthLoading('');
   }
-} else {
-  // Load teams in background — screen is already usable
-  setTimeout(function() { loadTeamsList(); }, 100);
 }
+// loadTeamsList no longer needed — using text input
 
 // ── DELETE TEAM ──
 function confirmDeleteTeam() {
