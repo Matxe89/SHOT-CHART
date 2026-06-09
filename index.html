@@ -1393,11 +1393,14 @@ document.getElementById('delete-team-pin').addEventListener('keydown', function(
   if (e.key === 'Enter') executeDeleteTeam();
 });
 
-// ── GLOBAL WRAPPERS for onclick access ──
-window.authSignIn = function() { return authSignInFn(); };
-window.authCreateTeam = function() { return authCreateTeamFn(); };
-window.authLogout = function() { return authLogoutFn(); };
+</script>
 
+<script>
+// Global wrappers — separate script to ensure they load after everything else
+window.authSignIn     = function() { return authSignInFn(); };
+window.authCreateTeam = function() { return authCreateTeamFn(); };
+window.authLogout     = function() { return authLogoutFn(); };
+window.confirmDeleteTeam = function() { return confirmDeleteTeamFn ? confirmDeleteTeamFn() : null; };
 </script>
 </body>
 </html>
