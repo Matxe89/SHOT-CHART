@@ -1403,10 +1403,10 @@ if (saved) {
     setAuthLoading('');
   }
 }
-// loadTeamsList no longer needed — using text input
+loadTeamsList();
 
 // ── DELETE TEAM ──
-function confirmDeleteTeam() {
+function confirmDeleteTeam_internal() {
   if (!currentTeam) return;
   document.getElementById('delete-team-name').textContent = currentTeam.name + ' (' + currentTeam.code + ')';
   document.getElementById('delete-team-pin').value = '';
@@ -1465,7 +1465,7 @@ document.getElementById('delete-team-pin').addEventListener('keydown', function(
 window.authSignIn     = function() { return authSignInFn(); };
 window.authCreateTeam = function() { return authCreateTeamFn(); };
 window.authLogout     = function() { return authLogoutFn(); };
-window.confirmDeleteTeam = function() { return confirmDeleteTeamFn ? confirmDeleteTeamFn() : null; };
+window.confirmDeleteTeam = function() { return confirmDeleteTeam_internal(); };
 </script>
 </body>
 </html>
