@@ -6,6 +6,9 @@
 <title>Shot Chart</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -1191,8 +1194,6 @@ function setAuthLoading(msg) {
 
 async function initFirebase() {
   if (db) return db;
-  const { initializeApp, getApps, getApp } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
-  const { getFirestore } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
   const cfg = {
     apiKey:"AIzaSyBoUsRcxZ9lqjdVmJi6acZ5k0gjKwVrD2E",
     authDomain:"calendario-eslovaquia.firebaseapp.com",
@@ -1201,8 +1202,8 @@ async function initFirebase() {
     messagingSenderId:"531012562985",
     appId:"1:531012562985:web:ff244d746a8fcbfdccac38"
   };
-  const app = getApps().length ? getApp() : initializeApp(cfg);
-  db = getFirestore(app);
+  if (!firebase.apps.length) firebase.initializeApp(cfg);
+  db = firebase.firestore();
   return db;
 }
 
@@ -1214,10 +1215,9 @@ async function authSignInFn() {
   setAuthLoading('Checking...');
   try {
     await initFirebase();
-    const { doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
-    const ref = doc(db, 'shot_chart_teams', code);
-    const snap = await getDoc(ref);
-    if (!snap.exists()) { setAuthError('Team not found. Check the code or create a new team.'); return; }
+    const ref = db.collection('shot_chart_teams').doc(code);
+    const snap = await ref.get();
+    if (!snap.exists) { setAuthError('Team not found. Check the code or create a new team.'); return; }
     const data = snap.data();
     const pinHash = await hashPin(pin);
     if (data.pinHash !== pinHash) { setAuthError('Incorrect PIN.'); return; }
@@ -1240,12 +1240,11 @@ async function authCreateTeamFn() {
   setAuthLoading('Creating team...');
   try {
     await initFirebase();
-    const { doc, getDoc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
-    const ref = doc(db, 'shot_chart_teams', code);
-    const snap = await getDoc(ref);
-    if (snap.exists()) { setAuthError('Team code already taken. Choose another.'); return; }
+    const ref = db.collection('shot_chart_teams').doc(code);
+    const snap = await ref.get();
+    if (snap.exists) { setAuthError('Team code already taken. Choose another.'); return; }
     const pinHash = await hashPin(pin);
-    await setDoc(ref, { name: name, pinHash: pinHash, createdAt: new Date().toISOString() });
+    await ref.set({ name: name, pinHash: pinHash, createdAt: new Date().toISOString() });
     currentTeam = { code: code, name: name };
     sessionStorage.setItem('sc_team', JSON.stringify(currentTeam));
     launchApp();
@@ -1285,8 +1284,7 @@ async function saveData() {
   clearTimeout(saveTimer);
   saveTimer = setTimeout(async function() {
     try {
-      const { doc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
-      await setDoc(doc(db, 'shot_chart_teams', currentTeam.code, 'data', 'main'), {
+      await db.collection('shot_chart_teams').doc(currentTeam.code).collection('data').doc('main').set({
         entries: entries,
         nextId: nextId,
         players: players,
@@ -1302,9 +1300,8 @@ async function saveData() {
 async function loadData() {
   if (!currentTeam || !db) return;
   try {
-    const { doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
-    const snap = await getDoc(doc(db, 'shot_chart_teams', currentTeam.code, 'data', 'main'));
-    if (snap.exists()) {
+    const snap = await db.collection('shot_chart_teams').doc(currentTeam.code).collection('data').doc('main').get();
+    if (snap.exists) {
       const d = snap.data();
       entries = d.entries || [];
       nextId  = d.nextId  || 1;
@@ -1325,8 +1322,7 @@ async function loadTeamsList() {
     if (loaded) return;
     try {
       await initFirebase();
-      const { collection, getDocs } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
-      const snap = await getDocs(collection(db, 'shot_chart_teams'));
+      const snap = await db.collection('shot_chart_teams').get();
       snap.forEach(function(d) {
         teams.push({ code: d.id, name: d.data().name || d.id });
       });
@@ -1431,19 +1427,17 @@ async function executeDeleteTeam() {
   document.getElementById('delete-team-error').textContent = '';
 
   try {
-    const { doc, getDoc, deleteDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
-    // Verify PIN first
-    const teamRef = doc(db, 'shot_chart_teams', currentTeam.code);
-    const snap = await getDoc(teamRef);
-    if (!snap.exists()) { document.getElementById('delete-team-error').textContent = 'Team not found.'; return; }
+    const teamRef = db.collection('shot_chart_teams').doc(currentTeam.code);
+    const snap = await teamRef.get();
+    if (!snap.exists) { document.getElementById('delete-team-error').textContent = 'Team not found.'; return; }
     const pinHash = await hashPin(pin);
     if (snap.data().pinHash !== pinHash) {
       document.getElementById('delete-team-error').textContent = 'Incorrect PIN.';
       return;
     }
     // Delete data subcollection doc + team doc
-    await deleteDoc(doc(db, 'shot_chart_teams', currentTeam.code, 'data', 'main'));
-    await deleteDoc(teamRef);
+    await db.collection('shot_chart_teams').doc(currentTeam.code).collection('data').doc('main').delete();
+    await teamRef.delete();
     closeDeleteModal();
     alert('Team "' + currentTeam.name + '" deleted successfully.');
     authLogout();
