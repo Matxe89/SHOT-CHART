@@ -196,8 +196,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
 
 /* DELETE TEAM MODAL */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:950;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(3px);}
-.modal-overlay.open{display:flex;}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:950;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(3px);pointer-events:none;}
+.modal-overlay.open{display:flex;pointer-events:auto;}
 .modal-box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;max-width:320px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,.15);}
 .modal-title{font-size:15px;font-weight:700;margin-bottom:6px;color:var(--red);}
 .modal-sub{font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.5;}
@@ -467,6 +467,23 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   </div>
 </div>
 
+
+<!-- DELETE TEAM MODAL -->
+<div class="modal-overlay" id="delete-team-modal">
+  <div class="modal-box">
+    <div class="modal-title">⚠️ Delete Team</div>
+    <div class="modal-sub">Enter your PIN to confirm. This will permanently delete the team <strong id="delete-team-name"></strong> and all its data.</div>
+    <div class="modal-field">
+      <label>PIN</label>
+      <input type="password" id="delete-team-pin" placeholder="Enter your PIN" autocomplete="off">
+    </div>
+    <div class="modal-error" id="delete-team-error"></div>
+    <div class="modal-btns">
+      <button class="cancel-btn" onclick="closeDeleteModal()">Cancel</button>
+      <button class="delete-btn" onclick="executeDeleteTeam()">Delete forever</button>
+    </div>
+  </div>
+</div>
 </div><!-- /app -->
 
 <script>
@@ -1061,8 +1078,6 @@ function exportPDF(){
   html+='</tbody></table>';
   html+='<script>window.onload=function(){window.print();}<\/script>';
   html+='
-<!-- DELETE TEAM MODAL -->
-<div class="modal-overlay" id="delete-team-modal">
   <div class="modal-box">
     <div class="modal-title">⚠️ Delete Team</div>
     <div class="modal-sub">Enter your PIN to confirm. This will permanently delete the team <strong id="delete-team-name"></strong> and all its data.</div>
